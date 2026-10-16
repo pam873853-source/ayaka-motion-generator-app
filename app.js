@@ -17,15 +17,8 @@ const ampAuth = new AlightMotionAuthBrowser();
 let activeTabName = 'dashboard';
 let verifiedEmailTemp = '';
 let historyLogs = [];
+let totalVisitorsCount = 0;
 let app, db, auth, userId = null;
-
-let startTime = localStorage.getItem('ayaka_uptime_start');
-if (!startTime) {
-    startTime = Date.now();
-    localStorage.setItem('ayaka_uptime_start', startTime);
-} else {
-    startTime = parseInt(startTime, 10);
-}
 
 window.setActiveTab = function(tab) {
     activeTabName = tab;
@@ -113,19 +106,17 @@ window.handleVerifyAndApply = async function() {
             senderId: userId
         };
 
-        // Simpan ke Supabase SQL Database
         if (supabaseClient) {
             try {
                 const { error } = await supabaseClient.from('activations').insert([logData]);
                 if (!error) {
-                    await fetchSupabaseActivations(); // Langsung tarik data terbaru agar riwayat terupdate
+                    await fetchSupabaseActivations();
                 }
             } catch (supErr) {
                 console.warn("Supabase insert note:", supErr);
             }
         }
 
-        // Simpan ke Firestore Firebase secara Real-time
         if (db && userId) {
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'activations'), logData);
@@ -134,7 +125,6 @@ window.handleVerifyAndApply = async function() {
             }
         }
 
-        // Reset form tanpa mengalihkan halaman ke tab riwayat
         document.getElementById('amp-email').value = '';
         document.getElementById('amp-magic-link').value = '';
         switchActivationStep(1);
@@ -198,15 +188,15 @@ function showToast(msg) {
 }
 
 function updateCounts() {
-    const count = historyLogs.length;
+    const actCount = historyLogs.length;
     const visitorsEl = document.getElementById('visitors-count');
     const actEl = document.getElementById('activations-count');
     const actTotalEl = document.getElementById('act-total-count');
     const actTodayEl = document.getElementById('act-today-count');
 
-    if (visitorsEl) visitorsEl.textContent = count;
-    if (actEl) actEl.textContent = count;
-    if (actTotalEl) actTotalEl.textContent = count;
+    if (visitorsEl) visitorsEl.textContent = totalVisitorsCount;
+    if (actEl) actEl.textContent = actCount;
+    if (actTotalEl) actTotalEl.textContent = actCount;
 
     const todayStr = new Date().toDateString();
     const todayCount = historyLogs.filter(h => h.dateString === todayStr).length;
@@ -232,7 +222,7 @@ async function fetchSupabaseActivations() {
 }
 
 async function initDatabaseSync() {
-    await fetchSupabaseActivations();
+    await fetchSupabaseActivations(); 
     setInterval(fetchSupabaseActivations, 5000);
 
     try {
@@ -292,19 +282,26 @@ function updateBatteryDisplay() {
 
 function updateLiveWidgets() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    
+    // 1. Waktu HP Real-Time (Format HH.MM.SS)
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
     const clockEl = document.getElementById('live-clock');
-    if (clockEl) clockEl.textContent = timeStr;
+    if (clockEl) clockEl.textContent = `${hours}.${minutes}.${seconds}`;
 
+    // 2. Tanggal Real-Time HP (Format DD/MM/YY -> Contoh: 16/10/26)
+    const day = now.getDate().toString().padStart(2, '0');
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const year = now.getFullYear().toString().slice(-2);
+    
+    const dateEl = document.getElementById('live-date');
+    if (dateEl) dateEl.textContent = `${day}/${month}/${year}`;
+
+    // 3. Format Tanggal Lengkap di Tab Aktivasi
     const fullDateStr = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID');
     const dtEl = document.getElementById('current-date-time');
     if (dtEl) dtEl.textContent = fullDateStr;
-
-    const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
-    const mins = Math.floor(elapsedSec / 60).toString().padStart(2, '0');
-    const secs = (elapsedSec % 60).toString().padStart(2, '0');
-    const uptimeEl = document.getElementById('live-uptime');
-    if (uptimeEl) uptimeEl.textContent = `${mins}:${secs}`;
 }
 
 updateLiveWidgets();
