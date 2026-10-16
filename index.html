@@ -44,9 +44,10 @@
                 </span>
             </div>
             
+            <!-- BAGIAN INI SUDAH DIGANTI MENJADI TANGGAL LENGKAP -->
             <div class="neo-card p-2 bg-white flex flex-col justify-center items-center text-center">
                 <span class="text-[9px] font-black text-gray-500 uppercase tracking-tighter">TANGGAL</span>
-                <span id="live-uptime" class="text-[10px] font-black font-mono tracking-tighter">--/--/--</span>
+                <span id="live-date" class="text-[10px] font-black font-mono tracking-tighter">--/--/--</span>
             </div>
         </div>
     </header>
@@ -99,7 +100,7 @@
                 <span class="text-[9px] font-bold text-gray-500 leading-tight">Full 365 Hari Server</span>
             </div>
 
-            <!-- TOMBOL SUPPORT (SUDAH DIPERBAIKI AGAR PASTI BISA DIPENCET) -->
+            <!-- TOMBOL SUPPORT (BISA DIPENCET KELUAR POPUP QR) -->
             <button type="button" onclick="toggleQrModal(true)" class="neo-card p-3 bg-white flex flex-col items-center text-center space-y-1 cursor-pointer hover:bg-yellow-200 active:scale-95 transition-all select-none w-full">
                 <div class="w-9 h-9 neo-card-yellow flex items-center justify-center text-lg pointer-events-none">
                     💬
@@ -263,7 +264,6 @@
                 </button>
             </div>
 
-            <!-- Tampilan Gambar QR Code Ayaka Store -->
             <div class="neo-card bg-white p-2 flex justify-center items-center overflow-hidden">
                 <img src="qr-ayaka.jpg" alt="AYAKA STORE QRIS" class="w-full h-auto rounded-lg object-contain">
             </div>
